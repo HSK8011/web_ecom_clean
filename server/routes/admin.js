@@ -118,7 +118,13 @@ router.get('/dashboard', auth, isAdmin, async (req, res) => {
 // @access  Private/Admin
 router.get('/orders/:id', auth, isAdmin, async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id)
+    // Validate order ID format to prevent injection
+    const orderId = req.params.id;
+    if (!orderId.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ error: 'Invalid order ID format' });
+    }
+    
+    const order = await Order.findById(orderId)
       .populate('user', 'name email')
       .populate('items.product', 'name images price');
     
@@ -140,12 +146,15 @@ router.get('/orders', auth, isAdmin, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
-    const status = req.query.status || '';
+    const statusInput = req.query.status || '';
     
-    // Build query
+    // Build query with validation
     const query = {};
-    if (status) {
-      query.status = status;
+    
+    // Validate status parameter - only accept predefined valid values
+    const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+    if (statusInput && validStatuses.includes(statusInput.toLowerCase())) {
+      query.status = statusInput.toLowerCase();
     }
     
     // Calculate pagination
@@ -187,29 +196,45 @@ router.put('/orders/:id/status', auth, isAdmin, async (req, res) => {
       return res.status(400).json({ error: 'Status is required' });
     }
     
-    // Find order
-    const order = await Order.findById(req.params.id);
+    // Validate status parameter
+    const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+    if (!validStatuses.includes(status.toLowerCase())) {
+      return res.status(400).json({ error: 'Invalid status value' });
+    }
+    
+    // Find order - validate object ID pattern to prevent injection
+    const orderId = req.params.id;
+    if (!orderId.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ error: 'Invalid order ID format' });
+    }
+    
+    const order = await Order.findById(orderId);
     
     if (!order) {
       return res.status(404).json({ error: 'Order not found' });
     }
     
-    // Convert status to lowercase to match the enum in the model
-    order.status = status.toLowerCase();
+    // Use validated status
+    const validatedStatus = status.toLowerCase();
+    order.status = validatedStatus;
     
-    // Optional fields
+    // Validate and sanitize optional fields
     if (trackingNumber) {
-      order.trackingNumber = trackingNumber;
+      // Sanitize tracking number (example: allow only alphanumeric characters)
+      const sanitizedTrackingNumber = trackingNumber.toString().replace(/[^\w\d-]/g, '');
+      order.trackingNumber = sanitizedTrackingNumber;
     }
     
     if (notes) {
-      order.notes = notes;
+      // Sanitize notes - basic sanitization example
+      const sanitizedNotes = notes.toString().substring(0, 1000); // Limit length
+      order.notes = sanitizedNotes;
     }
     
     // Save the changes
     const updatedOrder = await order.save();
     
-    // UPDATE THE USER PROFILE ORDER STATUS (this was missing)
+    // UPDATE THE USER PROFILE ORDER STATUS
     if (order.user) {
       const userProfile = await UserProfile.findOne({ user: order.user });
       if (userProfile) {
@@ -218,8 +243,8 @@ router.put('/orders/:id/status', auth, isAdmin, async (req, res) => {
           o => o.orderId.toString() === order._id.toString()
         );
         if (profileOrder) {
-          // Update the status
-          profileOrder.status = status.toLowerCase();
+          // Update the status with validated value
+          profileOrder.status = validatedStatus;
           // Update the order summary totals
           userProfile.updateOrderSummary();
           await userProfile.save();
@@ -239,4 +264,4 @@ router.put('/orders/:id/status', auth, isAdmin, async (req, res) => {
   }
 });
 
-module.exports = router; 
+module.exports = router;
