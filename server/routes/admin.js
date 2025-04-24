@@ -23,9 +23,6 @@ router.get('/dashboard', auth, isAdmin, async (req, res) => {
     // Get start of previous month
     const startOfPrevMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
     
-    // Get start of current year
-    const startOfYear = new Date(currentDate.getFullYear(), 0, 1);
-
     // ----- ORDERS METRICS -----
     // Total orders count
     const totalOrders = await Order.countDocuments();
@@ -35,7 +32,7 @@ router.get('/dashboard', auth, isAdmin, async (req, res) => {
       createdAt: { $gte: startOfMonth }
     });
     
-    // Orders previous month
+    // Orders previous month (will be included in metrics response)
     const ordersPrevMonth = await Order.countDocuments({
       createdAt: { $gte: startOfPrevMonth, $lt: startOfMonth }
     });
@@ -90,6 +87,7 @@ router.get('/dashboard', auth, isAdmin, async (req, res) => {
         counts: {
           totalOrders,
           ordersThisMonth,
+          ordersPrevMonth, // Include previous month orders in the response
           totalCustomers,
           totalUsers,
           newCustomersThisMonth
