@@ -1,0 +1,143 @@
+/* Tab Navigation Styles */
+.tab-nav {
+  position: relative;
+}
+
+.tab-link {
+  position: relative;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.tab-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #000;
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.tab-link.active {
+  font-weight: 600;
+}
+
+.tab-link.active::after {
+  transform: scaleX(1);
+}
+
+/* Tab Content Animations */
+.tab-pane-animated {
+  position: relative;
+}
+
+.fade-in {
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Review Card Hover Animation */
+.card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Button Hover Animations */
+.btn {
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+/* FAQ Item Hover Effect */
+.faq-item {
+  transition: transform 0.2s ease;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.faq-item:hover {
+  transform: translateX(8px);
+  background-color: #f8f9fa;
+}
+
+/* Load More Reviews Button Animation */
+.btn-outline-dark {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-outline-dark::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 120%;
+  height: 120%;
+  background: rgba(0, 0, 0, 0.05);
+  transform: translate(-50%, -50%) scale(0);
+  border-radius: 50%;
+  transition: transform 0.4s ease;
+}
+
+.btn-outline-dark:hover::after {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* Write a Review Button Pulse */
+.btn-dark {
+  position: relative;
+}
+
+.btn-dark::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: 50px;
+  background: #000;
+  z-index: -1;
+  opacity: 0.1;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.1;
+  }
+} 
